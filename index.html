@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Buscaminas Avanzado 😎</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; background: #1e1e1e; color: white; }
+    #board { display: grid; margin: 20px auto; gap: 3px; }
+    .cell {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      background: #333; border-radius: 5px; cursor: pointer; font-weight: bold;
+    }
+    .open { background: #555; }
+    .mine { background: red; }
+  </style>
+</head>
+<body>
+  <h1>💣 Buscaminas Avanzado</h1>
+  <div id="board"></div>
+  <script>
+    const size = 10; // 10x10
+    const mines = 10;
+    const board = document.getElementById('board');
+    let grid = [];
+
+    function createBoard() {
+      board.style.gridTemplateColumns = `repeat(${size}, 30px)`;
+      grid = [];
+      for (let y = 0; y < size; y++) {
+        const row = [];
+        for (let x = 0; x < size; x++) {
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.dataset.x = x;
+          cell.dataset.y = y;
+          cell.addEventListener('click', handleClick);
+          board.appendChild(cell);
+          row.push({x, y, mine: false, open: false, el: cell});
+        }
+        grid.push(row);
+      }
+      placeMines();
+    }
+
+    function placeMines() {
+      let placed = 0;
+      while (placed < mines) {
+        const x = Math.floor(Math.random() * size);
+        const y = Math.floor(Math.random() * size);
+        if (!grid[y][x].mine) {
+          grid[y][x].mine = true;
+          placed++;
+        }
+      }
+    }
+
+    function handleClick(e) {
+      const x = +e.target.dataset.x;
+      const y = +e.target.dataset.y;
+      const cell = grid[y][x];
+      if (cell.mine) {
+        e.target.classList.add('mine');
+        alert('💥 ¡Boom! Perdiste');
+        return;
+      }
+      openCell(x, y);
+    }
+
+    function openCell(x, y) {
+      const cell = grid[y][x];
+      if (cell.open) return;
+      cell.open = true;
+      cell.el.classList.add('open');
+      const minesAround = countMines(x, y);
+      if (minesAround > 0) cell.el.textContent = minesAround;
+      else for (let dy=-1; dy<=1; dy++)
+        for (let dx=-1; dx<=1; dx++) {
+          const nx = x+dx, ny = y+dy;
+          if (nx>=0 && nx<size && ny>=0 && ny<size)
+            openCell(nx, ny);
+        }
+    }
+
+    function countMines(x, y) {
+      let count = 0;
+      for (let dy=-1; dy<=1; dy++)
+        for (let dx=-1; dx<=1; dx++) {
+          const nx = x+dx, ny = y+dy;
+          if (nx>=0 && nx<size && ny>=0 && ny<size && grid[ny][nx].mine)
+            count++;
+        }
+      return count;
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>
